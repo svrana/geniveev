@@ -1,0 +1,41 @@
+[service-stubs."protos/{service_name}/v1/{service_name}/{service_name}.proto"]
+    code = '''
+syntax = "proto3";
+
+package {{service_name}}.v1;
+
+import "validate/validate.proto";
+
+// note that Title is a geniveev builtin that we use to capalize the Name of the service, i.e.,
+// UserService
+service {{ service_name | Title }}Service {
+    '''
+[service-stubs.'services/v1/{service_name}/{service_name}.go']
+    code = '''
+package {service_name}v1
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+
+	"github.com/bufbuild/connect-go"
+
+	"github.com/bommie/b6/config"
+	"github.com/bommie/b6/db"
+)
+
+type {service_name | Title}Server struct {
+	db  *db.DB
+	cfg *config.AuthConfig
+}
+
+var _ {service_name}v1connect.{service_name | Title}ServiceClient = (*{service_name | Title }Server)(nil)
+
+func NewServer(_ context.Context, db *db.DB, cfg *config.AuthConfig) *{service_name | Title }Server {
+    return &{service_name | Title }Server{
+		db:  db,
+		cfg: cfg,
+	}
+}
+    '''
