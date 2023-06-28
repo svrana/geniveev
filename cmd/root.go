@@ -1,13 +1,19 @@
 package cmd
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
+	"html/template"
 	"os"
+	"path"
 	"regexp"
 	"strings"
 
 	"github.com/pelletier/go-toml/v2"
 	"github.com/spf13/cobra"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // This is probably a poor name if we've only got this structure
@@ -18,9 +24,11 @@ type GeneratorConfig struct {
 
 type Filename string
 
+type TemplateValues map[string]*string
+
 type TemplateConfig struct {
 	TemplateConfigMap map[Filename]GeneratorConfig
-	TemplateValues    map[string]*string
+	TemplateValues    TemplateValues
 }
 
 func (tc *TemplateConfig) String() string {
@@ -62,28 +70,75 @@ func Execute() {
 	}
 }
 
-func start(cmd string, args []string, templateConfig *TemplateConfig) {
-	//fmt.Printf("got cmd: %s, args: %s, templateConfig: %s", cmd, args, templateConfig)
-	// k := cfg[cmd]
-	// if userDef, ok := k.(map[string]interface{}); ok {
-	// 	//fmt.Printf("got userDef: %s\n", userDef)
-	// 	for k := range userDef {
-	// 		fmt.Printf("got key of userDef: %s\n", k)
-	// 	}
-	// }
-	// for filename, generatorConfig := range templateConfig.TemplateConfigMap {
-	//
-	// 	//fmt.Printf("got filename: %s, code: %s\n", filename, generatorConfig.Code)
-	// }
-
-	// go through each key of service_stubs
-	// substitute all parameterized values with those from templateValues
-	// create directories as approrpriate
-	// create go template, and write it to the file
+func TemplateFuncTitle(input string) string {
+	return cases.Title(language.Make("en")).String(input)
 }
 
-// initConfig reads in config file and ENV variables if set.
-func init() {
+func giniTemplateParse(name string, templateStr string, templateValues TemplateValues) (string, error) {
+	tmpl, err := template.New(name).Funcs(template.FuncMap{
+		"Title": TemplateFuncTitle,
+	}).Parse(templateStr)
+	if err != nil {
+		return "", err
+	}
+	out := &bytes.Buffer{}
+	if err := tmpl.Execute(out, templateValues); err != nil {
+		return "", err
+	}
+	return out.String(), nil
+}
+
+func constructFilename(templatedFilename Filename, templateValues TemplateValues) (string, error) {
+	var filename = string(templatedFilename)
+	return giniTemplateParse(filename, filename, templateValues)
+}
+
+func createPath(filename string) error {
+	if _, err := os.Stat(filename); err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			return fmt.Errorf("failed to check %s for existence: %s", filename, err)
+
+		}
+	} else {
+		return fmt.Errorf("%s already exists, will not overwrite", filename)
+	}
+
+	if err := os.MkdirAll(path.Dir(filename), 0755); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to create directory %s: %s", path.Dir(filename), err)
+		os.Exit(1)
+	}
+	return nil
+}
+
+func generate(generatorConfig GeneratorConfig, filename string, templateConfig *TemplateConfig) error {
+	code, err := giniTemplateParse(filename, generatorConfig.Code, templateConfig.TemplateValues)
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(filename, []byte(code), 0644); err != nil {
+		return err
+	}
+	return nil
+}
+
+func start(templateConfig *TemplateConfig) error {
+	for templatedFilename, config := range templateConfig.TemplateConfigMap {
+		filename, err := constructFilename(templatedFilename, templateConfig.TemplateValues)
+		if err != nil {
+			return err
+		}
+		if err := createPath(filename); err != nil {
+			return err
+		}
+		if err := generate(config, filename, templateConfig); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Initialize reads in config file and ENV variables if set.
+func Initialize() {
 	// key splitting in cobra is borked with toml and keys containing periods, so just handle
 	// the file reading ourselves here.
 	b, err := os.ReadFile(cfgFile)
@@ -99,19 +154,10 @@ func init() {
 		os.Exit(1)
 	}
 
-	re := regexp.MustCompile(`{(\w+)}`)
+	re := regexp.MustCompile(`{(.\w+)}`)
 
 	for name, v := range cfg {
 		config.Generator[name] = NewTemplateConfigEmpty()
-
-		//fmt.Printf("key: %s\n", k)
-		newCmd := &cobra.Command{
-			Use:   name,
-			Short: fmt.Sprintf("Generate %s", name),
-			Run: func(_ *cobra.Command, args []string) {
-				start(name, args, config.Generator[name])
-			},
-		}
 
 		arguments := make(map[string]bool)
 		var valueMap map[string]interface{}
@@ -126,7 +172,7 @@ func init() {
 			allMatches := re.FindAll([]byte(k), -1)
 			for _, match := range allMatches {
 				// where's the capture group?
-				arguments[strings.Trim(string(match), "{}")] = true
+				arguments[strings.Trim(string(match), ".{}")] = true
 			}
 			if vMap, ok := v.(map[string]interface{}); ok {
 				for key, value := range vMap {
@@ -138,6 +184,8 @@ func init() {
 							os.Exit(1)
 						}
 						//fmt.Printf("k: %s, key: %s, %s: %s\n", k, key, key, strValue)
+
+						// FIXME: go through code and create parameters out of any variables used there
 						config.Generator[name].TemplateConfigMap[Filename(k)] = GeneratorConfig{Code: strValue}
 					default:
 						fmt.Fprintf(os.Stderr, "unknown key in %s: %s", k, key)
@@ -146,6 +194,17 @@ func init() {
 					}
 				}
 			}
+		}
+
+		newCmd := &cobra.Command{
+			Use:   name,
+			Short: fmt.Sprintf("Generate %s", name),
+			Run: func(_ *cobra.Command, _ []string) {
+				if err := start(config.Generator[name]); err != nil {
+					fmt.Fprintf(os.Stderr, "%s", err)
+					os.Exit(1)
+				}
+			},
 		}
 
 		// add each place holder as an argument stringvar flag to the new command above
@@ -157,8 +216,7 @@ func init() {
 			}
 			config.Generator[name].TemplateValues[t] = s
 		}
-		//fmt.Println("adding newCmd")
-		rootCmd.AddCommand(newCmd)
 
+		rootCmd.AddCommand(newCmd)
 	}
 }

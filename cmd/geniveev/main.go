@@ -24,5 +24,6 @@ package main
 import "github.com/svrana/geniveev/cmd"
 
 func main() {
+	cmd.Initialize()
 	cmd.Execute()
 }

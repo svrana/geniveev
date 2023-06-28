@@ -42,25 +42,26 @@ Project/
 
 Contents of .geniveev.json
 
-```toml
-title="Example code generation"
+(Note this config file is located in the example directory. If you wish to see geniveev do
+her thing, run `make && cd examples && ../build/geniveev service-stubs --service-name User`
 
-[service-stubs]
-    ["protos/{service_name}/v1/{service_name}/{service_name}.proto"]
-        code = '''
+```toml
+[service-stubs."protos/{{.service_name}}/v1/{{.service_name}}/{{.service_name}}.proto"]
+    code = '''
 syntax = "proto3";
 
-package {{service_name}}.v1;
+package {{.service_name}}.v1;
 
 import "validate/validate.proto";
 
 // note that Title is a geniveev builtin that we use to capalize the Name of the service, i.e.,
 // UserService
-service {{ service_name | Title }}Service {
-        '''
-    ['services/v1/{service_name}/{service_name}.go']
-        code = '''
-package {service_name}v1
+service {{ .service_name | Title }}Service {
+}
+'''
+[service-stubs.'services/v1/{{.service_name}}/{{.service_name}}.go']
+    code = '''
+package {{.service_name}}v1
 
 import (
 	"context"
@@ -73,31 +74,31 @@ import (
 	"github.com/bommie/b6/db"
 )
 
-type {service_name | Title}Server struct {
+type {{.service_name | Title}}Server struct {
 	db  *db.DB
 	cfg *config.AuthConfig
 }
 
-var _ {service_name}v1connect.{service_name | Title}ServiceClient = (*{service_name | Title }Server)(nil)
+var _ {{.service_name}}v1connect.{{.service_name | Title}}ServiceClient = (*{{.service_name | Title }}Server)(nil)
 
-func NewServer(_ context.Context, db *db.DB, cfg *config.AuthConfig) *{service_name | Title }Server {
-    return &{service_name | Title }Server{
+func NewServer(_ context.Context, db *db.DB, cfg *config.AuthConfig) *{{.service_name | Title }}Server {
+    return &{{.service_name | Title}}Server{
 		db:  db,
 		cfg: cfg,
 	}
 }
-        '''
+'''
 ```
 
 If you run geniveev with the --help flag with the above .geniveev configuration
 file in your current directory, you will see that a command called 'service-stubs'
 is available to run. You just created that command by declaring it at the top level
-of the toml configuration file. As you might have guessed, this configuration file is
-going to create the protobuf stubs needed to create a service as described in Why?.
+of the toml configuration file. This name is arbitrary; name them as you see fit for your
+project.
 
 Following the top-level 'service-stubs' map is another another map, where the
 key is a filename. The values between the brackets are also turned into
-requierd CLI options. So, type `genvieev service-stubs --help`. You will see that
+required CLI options. So, type `genvieev service-stubs --help`. You will see that
 there is a required string option 'service_name'. Ok, let's provide one and see what
 happens.
 
