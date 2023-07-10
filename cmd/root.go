@@ -14,46 +14,12 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+
+	"github.com/svrana/geniveev"
 )
 
-// This is probably a poor name if we've only got this structure
-// to allow other rendering engines.
-type GeneratorConfig struct {
-	Code string
-}
-
-type Filename string
-
-type TemplateValues map[string]*string
-
-type TemplateConfig struct {
-	TemplateConfigMap map[Filename]GeneratorConfig
-	TemplateValues    TemplateValues
-}
-
-func (tc *TemplateConfig) String() string {
-	return fmt.Sprintf("configMap: %+v, values: %+v", tc.TemplateConfigMap, tc.TemplateValues)
-}
-
-func NewTemplateConfigEmpty() *TemplateConfig {
-	return &TemplateConfig{
-		TemplateConfigMap: make(map[Filename]GeneratorConfig),
-		TemplateValues:    make(map[string]*string),
-	}
-}
-
-type Config struct {
-	Generator map[string]*TemplateConfig
-}
-
-func NewConfig() *Config {
-	return &Config{
-		Generator: make(map[string]*TemplateConfig),
-	}
-}
-
 var cfgFile string = ".geniveev.toml"
-var config *Config = NewConfig()
+var config *geniveev.Config = geniveev.NewConfig()
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -74,7 +40,7 @@ func TemplateFuncTitle(input string) string {
 	return cases.Title(language.Make("en")).String(input)
 }
 
-func giniTemplateParse(name string, templateStr string, templateValues TemplateValues) (string, error) {
+func giniTemplateParse(name string, templateStr string, templateValues geniveev.TemplateValues) (string, error) {
 	tmpl, err := template.New(name).Funcs(template.FuncMap{
 		"Title": TemplateFuncTitle,
 	}).Parse(templateStr)
@@ -88,7 +54,7 @@ func giniTemplateParse(name string, templateStr string, templateValues TemplateV
 	return out.String(), nil
 }
 
-func constructFilename(templatedFilename Filename, templateValues TemplateValues) (string, error) {
+func constructFilename(templatedFilename geniveev.Filename, templateValues geniveev.TemplateValues) (string, error) {
 	var filename = string(templatedFilename)
 	return giniTemplateParse(filename, filename, templateValues)
 }
@@ -110,7 +76,7 @@ func createPath(filename string) error {
 	return nil
 }
 
-func generate(generatorConfig GeneratorConfig, filename string, templateConfig *TemplateConfig) error {
+func generate(generatorConfig geniveev.GeneratorConfig, filename string, templateConfig *geniveev.TemplateConfig) error {
 	code, err := giniTemplateParse(filename, generatorConfig.Code, templateConfig.TemplateValues)
 	if err != nil {
 		return err
@@ -121,7 +87,7 @@ func generate(generatorConfig GeneratorConfig, filename string, templateConfig *
 	return nil
 }
 
-func start(templateConfig *TemplateConfig) error {
+func start(templateConfig *geniveev.TemplateConfig) error {
 	for templatedFilename, config := range templateConfig.TemplateConfigMap {
 		filename, err := constructFilename(templatedFilename, templateConfig.TemplateValues)
 		if err != nil {
@@ -157,7 +123,7 @@ func Initialize() {
 	re := regexp.MustCompile(`{(.\w+)}`)
 
 	for name, v := range cfg {
-		config.Generator[name] = NewTemplateConfigEmpty()
+		config.Generator[name] = geniveev.NewTemplateConfigEmpty()
 
 		arguments := make(map[string]bool)
 		var valueMap map[string]interface{}
@@ -186,7 +152,7 @@ func Initialize() {
 						//fmt.Printf("k: %s, key: %s, %s: %s\n", k, key, key, strValue)
 
 						// FIXME: go through code and create parameters out of any variables used there
-						config.Generator[name].TemplateConfigMap[Filename(k)] = GeneratorConfig{Code: strValue}
+						config.Generator[name].TemplateConfigMap[geniveev.Filename(k)] = geniveev.GeneratorConfig{Code: strValue}
 					default:
 						fmt.Fprintf(os.Stderr, "unknown key in %s: %s", k, key)
 						os.Exit(1)
