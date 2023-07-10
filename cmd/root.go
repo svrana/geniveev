@@ -1,10 +1,8 @@
 package cmd
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
-	"html/template"
 	"os"
 	"path"
 	"regexp"
@@ -12,11 +10,9 @@ import (
 
 	"github.com/pelletier/go-toml/v2"
 	"github.com/spf13/cobra"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 
 	"github.com/svrana/geniveev"
-	"github.com/svrana/geniveev/builtins"
+	"github.com/svrana/geniveev/template"
 )
 
 var cfgFile string = ".geniveev.toml"
@@ -37,27 +33,9 @@ func Execute() {
 	}
 }
 
-func TemplateFuncTitle(input string) string {
-	return cases.Title(language.Make("en")).String(input)
-}
-
-func giniTemplateParse(name string, templateStr string, templateValues geniveev.TemplateValues) (string, error) {
-	tmpl, err := template.New(name).Funcs(template.FuncMap{
-		"Title": builtins.Title,
-	}).Parse(templateStr)
-	if err != nil {
-		return "", err
-	}
-	out := &bytes.Buffer{}
-	if err := tmpl.Execute(out, templateValues); err != nil {
-		return "", err
-	}
-	return out.String(), nil
-}
-
 func constructFilename(templatedFilename geniveev.Filename, templateValues geniveev.TemplateValues) (string, error) {
 	var filename = string(templatedFilename)
-	return giniTemplateParse(filename, filename, templateValues)
+	return template.Parse(filename, filename, templateValues)
 }
 
 func createPath(filename string) error {
@@ -78,7 +56,7 @@ func createPath(filename string) error {
 }
 
 func generate(generatorConfig geniveev.GeneratorConfig, filename string, templateConfig *geniveev.TemplateConfig) error {
-	code, err := giniTemplateParse(filename, generatorConfig.Code, templateConfig.TemplateValues)
+	code, err := template.Parse(filename, generatorConfig.Code, templateConfig.TemplateValues)
 	if err != nil {
 		return err
 	}
@@ -152,7 +130,6 @@ func Initialize() {
 						}
 						//fmt.Printf("k: %s, key: %s, %s: %s\n", k, key, key, strValue)
 
-						// FIXME: go through code and create parameters out of any variables used there
 						config.Generator[name].TemplateConfigMap[geniveev.Filename(k)] = geniveev.GeneratorConfig{Code: strValue}
 					default:
 						fmt.Fprintf(os.Stderr, "unknown key in %s: %s", k, key)
