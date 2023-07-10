@@ -12,7 +12,7 @@ UNAME_S 	:= $(shell uname -s | tr A-Z a-z)
 
 .PHONY: build
 build: ## Build geniveev
-	go build -o build/geni cmd/geniveev/main.go
+	go build -o build/gen cmd/geniveev/main.go
 
 .PHONY: watch
 watch: ##
