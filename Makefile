@@ -11,13 +11,16 @@ UNAME_S 	:= $(shell uname -s | tr A-Z a-z)
 ##@ Development
 
 .PHONY: build
-build: ## Build geniveev
+build: ## Build geniveev (output: build/gen)
 	go build -o build/gen cmd/geniveev/main.go
+
+.PHONY: test
+test: ## Run tests
+	go test ./...
 
 .PHONY: watch
 watch: ##
 	find . *.go | entr ${MAKE} build
-
 
 ##@ Common
 

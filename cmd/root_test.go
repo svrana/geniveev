@@ -1,6 +1,10 @@
 package cmd
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/svrana/geniveev"
+)
 
 func String(s string) *string {
 	return &s
@@ -8,7 +12,7 @@ func String(s string) *string {
 
 func TestConstructFilename(t *testing.T) {
 	tests := []struct {
-		inputFilename Filename
+		inputFilename geniveev.Filename
 		inputValues   map[string]*string
 		want          string
 	}{
