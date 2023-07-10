@@ -16,10 +16,11 @@ import (
 	"golang.org/x/text/language"
 
 	"github.com/svrana/geniveev"
+	"github.com/svrana/geniveev/builtins"
 )
 
 var cfgFile string = ".geniveev.toml"
-var config *geniveev.Config = geniveev.NewConfig()
+var config = geniveev.NewConfig()
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -42,7 +43,7 @@ func TemplateFuncTitle(input string) string {
 
 func giniTemplateParse(name string, templateStr string, templateValues geniveev.TemplateValues) (string, error) {
 	tmpl, err := template.New(name).Funcs(template.FuncMap{
-		"Title": TemplateFuncTitle,
+		"Title": builtins.Title,
 	}).Parse(templateStr)
 	if err != nil {
 		return "", err
