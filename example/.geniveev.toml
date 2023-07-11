@@ -6,7 +6,7 @@ package {{.service_name}}.v1;
 
 import "validate/validate.proto";
 
-// note that Title is a geniveev builtin that we use to capalize the Name of the service, i.e.,
+// note that Title is a geniveev builtin that we use to capitalize the Name of the service, i.e.,
 // UserService
 service {{ .service_name | Title }}Service {
 }
