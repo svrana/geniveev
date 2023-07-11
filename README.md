@@ -14,21 +14,19 @@ This tool is not protobuf specific, that's just my initial use-case.
 # Configuration
 
 To configure geniveev, you must construct a toml .geniveev configuration file in your
-current working directory.
+current working directory at the root of your project.
 
 ## geniveev configuration file
 
-This is an example configuration file included in the example/directory.
+This is an example configuration file included in the `example/` directory.
 
 The geniveev configuration file contains command definitions and any number of templates associated with the
-these definitions. The templates are associated with a filename that is itself a
-template, allowing the filename and its contents to be specified per-run via the command
-line.
+these definitions. The templates are associated with a filename that is itself a template, allowing the filename
+and its contents to be specified per-run via the command line.
 
 In the following configuration, we have defined the `service-stubs` command which consists of two templates. When geniveev
-is run, it generates a service-stubs command (and any others you add to the configuration
-file) and adds the service_name as a required parameter for that command. Any template
-value found the filename can be reused in the template itself.
+is run, it generates a service-stubs command (and any others you add to the configuration file) and adds the service_name as
+a required parameter for that command. Any template value found the filename can be reused in the template itself.
 
 Note that it is common to want to manipulate the filename in the file-content template itself, so some builtins are provided,
 as shown below.
