@@ -8,6 +8,13 @@ MAKEFLAGS += --no-builtin-rules
 DATE 		:= $(shell date +"%a %b %d %T %Y")
 UNAME_S 	:= $(shell uname -s | tr A-Z a-z)
 
+##@ Other
+
+.PHONY: release
+release: ## Push a new release to github
+	rm -rf dist/
+	goreleaser release
+
 ##@ Development
 
 .PHONY: build
