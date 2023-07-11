@@ -9,12 +9,14 @@ import (
 	"strings"
 
 	"github.com/pelletier/go-toml/v2"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 
 	"github.com/svrana/geniveev"
 	"github.com/svrana/geniveev/template"
 )
 
+var AppFs = afero.NewOsFs()
 var cfgFile string = ".geniveev.toml"
 var config = geniveev.NewConfig()
 
@@ -39,7 +41,7 @@ func constructFilename(templatedFilename geniveev.Filename, templateValues geniv
 }
 
 func createPath(filename string) error {
-	if _, err := os.Stat(filename); err != nil {
+	if _, err := AppFs.Stat(filename); err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
 			return fmt.Errorf("failed to check %s for existence: %s", filename, err)
 
@@ -48,7 +50,7 @@ func createPath(filename string) error {
 		return fmt.Errorf("%s already exists, will not overwrite", filename)
 	}
 
-	if err := os.MkdirAll(path.Dir(filename), 0755); err != nil {
+	if err := AppFs.MkdirAll(path.Dir(filename), 0755); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to create directory %s: %s", path.Dir(filename), err)
 		os.Exit(1)
 	}
@@ -60,7 +62,7 @@ func generate(generatorConfig geniveev.GeneratorConfig, filename string, templat
 	if err != nil {
 		return err
 	}
-	if err := os.WriteFile(filename, []byte(code), 0644); err != nil {
+	if err := afero.WriteFile(AppFs, filename, []byte(code), 0644); err != nil {
 		return err
 	}
 	return nil
@@ -82,25 +84,24 @@ func start(templateConfig *geniveev.TemplateConfig) error {
 	return nil
 }
 
-// Initialize reads in config file and ENV variables if set.
-func Initialize() {
+func readConfig() (map[string]interface{}, error) {
 	// key splitting in cobra is borked with toml and keys containing periods, so just handle
 	// the file reading ourselves here.
-	b, err := os.ReadFile(cfgFile)
+	b, err := afero.ReadFile(AppFs, cfgFile)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading .geniveev.toml: %s", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("error reading %s", cfgFile)
 	}
 
 	cfg := make(map[string]interface{})
-
 	if err := toml.Unmarshal(b, &cfg); err != nil {
-		fmt.Fprintf(os.Stderr, "failed to unmarshal toml: %s\n", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("failed to unmarshal toml: %sn", err)
 	}
 
-	re := regexp.MustCompile(`{(.\w+)}`)
+	return cfg, nil
+}
 
+func parseConfig(cfg map[string]interface{}) {
+	re := regexp.MustCompile(`{(.\w+)}`)
 	for name, v := range cfg {
 		config.Generator[name] = geniveev.NewTemplateConfigEmpty()
 
@@ -163,4 +164,14 @@ func Initialize() {
 
 		rootCmd.AddCommand(newCmd)
 	}
+}
+
+func Initialize() error {
+	cfg, err := readConfig()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		return err
+	}
+	parseConfig(cfg)
+	return nil
 }

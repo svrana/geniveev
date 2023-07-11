@@ -21,9 +21,15 @@ THE SOFTWARE.
 */
 package main
 
-import "github.com/svrana/geniveev/cmd"
+import (
+	"os"
+
+	"github.com/svrana/geniveev/cmd"
+)
 
 func main() {
-	cmd.Initialize()
+	if err := cmd.Initialize(); err != nil {
+		os.Exit(1)
+	}
 	cmd.Execute()
 }

@@ -2,8 +2,6 @@ package geniveev
 
 import "fmt"
 
-// This is probably a poor name if we've only got this structure
-// to allow other rendering engines.
 type GeneratorConfig struct {
 	Code string
 }
