@@ -10,7 +10,8 @@ import (
 
 func Parse(name string, templateStr string, templateValues geniveev.TemplateValues) (string, error) {
 	tmpl, err := template.New(name).Funcs(template.FuncMap{
-		"Title": builtins.Title,
+		"Title":            builtins.Title,
+		"SnakeToCamelCase": builtins.SnakeToCamelCase,
 	}).Parse(templateStr)
 	if err != nil {
 		return "", err
