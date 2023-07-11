@@ -82,10 +82,10 @@ func NewServer(_ context.Context, db *db.DB, cfg *config.AuthConfig) *{{.service
 '''
 ```
 
-After running `../build/gen service-stubs --service-name User` run `git status` and verify
+After running `../build/gen service-stubs --service-name user` run `git status` and verify
 that the following files exist and look as you expect.
 
-- protos/auth/v1/auth.proto was created
+- protos/user/v1/user.proto was created
 - services/v1/user/user.go was created
 
 ## Builtin template functions
