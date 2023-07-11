@@ -90,5 +90,5 @@ that the following files exist and look as you expect.
 
 ## Builtin template functions
 
-Title
-SnakeToCamelCase
+- Title
+- SnakeToCamelCase
