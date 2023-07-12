@@ -4,13 +4,12 @@ An easy to use, language-agnostic code generation tool, powered by Go templates 
 
 ## Why?
 
-I enjoy working with protobufs. To create a new service, I need to generate a
-number of files containing some boilerplate and I always need to go and look
-at a previous service to remember where these files should be created, create those files
-and copy/pasta a bit of boilerplate. This is made even worse if you use a dependency injection
-tool that requires its own files, something I also sometimes do. This little tool was
-written to automatically create those files with some simple boilerplate to speed up the
-process of creating a new service.
+For better or worse, I find myself working with protobufs. To create a service, I need to
+create a number of files in different directories, each containing a bit of boilerplate.
+While it's not hard to figure out the path names and copy/pasta the boilerplate, this tool
+was written to automate that chore.
+
+This tool is not protobuf specific; that's just my initial use-case.
 
 # Configuration
 
