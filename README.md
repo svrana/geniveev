@@ -9,7 +9,7 @@ create a number of files in different directories, each containing a bit of boil
 While it's not hard to figure out the path names and copy/pasta the boilerplate, this tool
 was written to automate that chore.
 
-This tool is not protobuf specific; that's just my initial use-case.
+This tool is not protobuf specific, that's just my initial use-case.
 
 # Configuration
 
@@ -21,7 +21,7 @@ current working directory.
 This is an example configuration file included in the example/directory.
 
 The geniveev configuration file contains command definitions and any number of templates associated with the
-with these definitions. The templates are associated with a filename that is itself a
+these definitions. The templates are associated with a filename that is itself a
 template, allowing the filename and its contents to be specified per-run via the command
 line.
 
