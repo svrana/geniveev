@@ -1,5 +1,7 @@
 # geniveev
 
+[![CI](https://github.com/svrana/geniveev/actions/workflows/ci.yml/badge.svg?branch=main)][ci]
+
 An easy to use, language-agnostic code generation tool, powered by Go templates and an intuitive CLI.
 
 ## Why?
