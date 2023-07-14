@@ -37,6 +37,8 @@ The following configuration file will generate two files for a protobuf setup. T
 clone this repo and run `make && cd examples && ../build/gen service-stubs --service-name User`.
 
 ```toml
+[service-stubs]
+
 [service-stubs."protos/{{.service_name}}/v1/{{.service_name}}/{{.service_name}}.proto"]
     code = '''
 syntax = "proto3";
