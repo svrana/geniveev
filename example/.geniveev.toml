@@ -1,6 +1,6 @@
 [service-stubs]
 
-[service-stubs."protos/{{.service_name}}/v1/{{.service_name}}/{{.service_name}}.proto"]
+[service-stubs."protos/{{.service_name}}/v1/{{.service_name}}.proto"]
     code = '''
 syntax = "proto3";
 

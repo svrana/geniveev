@@ -93,7 +93,7 @@ func TestIntegration(t *testing.T) {
 	if err = start(config.Generator["service-stubs"]); err != nil {
 		t.Fatalf("failed to generate code: %s", err)
 	}
-	userProto := "protos/user/v1/user/user.proto"
+	userProto := "protos/user/v1/user.proto"
 	_, err = AppFs.Stat(userProto)
 	if err != nil {
 		t.Fatalf("could not locate generated file")
