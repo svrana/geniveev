@@ -10,7 +10,7 @@ builds:
   -
     id: geniveev
     main: ./cmd/geniveev
-    binary: gen
+    binary: geniveev
     env:
       - CGO_ENABLED=0
     goos:
