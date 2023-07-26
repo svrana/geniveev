@@ -139,15 +139,15 @@ import (
 	"github.com/bommie/b6/db"
 )
 
-type UserServer struct {
+type UserService struct {
 	db  *db.DB
 	cfg *config.AuthConfig
 }
 
-var _ userv1connect.UserServiceClient = (*UserServer)(nil)
+var _ userv1connect.UserServiceClient = (*UserService)(nil)
 
-func NewServer(_ context.Context, db *db.DB, cfg *config.AuthConfig) *UserServer {
-    return &UserServer{
+func NewService(_ context.Context, db *db.DB, cfg *config.AuthConfig) *UserService {
+    return &UserService{
 		db:  db,
 		cfg: cfg,
 	}
