@@ -67,15 +67,15 @@ import (
 	"github.com/bommie/b6/db"
 )
 
-type {{.service_name | Title}}Server struct {
+type {{.service_name | Title}}Service struct {
 	db  *db.DB
 	cfg *config.AuthConfig
 }
 
-var _ {{.service_name}}v1connect.{{.service_name | Title}}ServiceClient = (*{{.service_name | Title }}Server)(nil)
+var _ {{.service_name}}v1connect.{{.service_name | Title}}ServiceClient = (*{{.service_name | Title }}Service)(nil)
 
-func NewServer(_ context.Context, db *db.DB, cfg *config.AuthConfig) *{{.service_name | Title }}Server {
-    return &{{.service_name | Title}}Server{
+func NewService(_ context.Context, db *db.DB, cfg *config.AuthConfig) *{{.service_name | Title }}Service {
+    return &{{.service_name | Title}}Service{
 		db:  db,
 		cfg: cfg,
 	}
