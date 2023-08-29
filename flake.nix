@@ -20,6 +20,7 @@
     };
     in {
       packages.default = pkgs.buildGoApplication {
+        inherit system;
         pname = "geniveev";
         version = "0.1.1";
         pwd = ./.;
