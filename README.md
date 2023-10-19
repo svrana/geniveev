@@ -83,7 +83,7 @@ func NewService(_ context.Context, db *db.DB, cfg *config.AuthConfig) *{{.servic
 '''
 ```
 
-After running `../build/gen service-stubs --service-name user` run `git status` and verify
+After running `../build/geniveev service-stubs --service-name user` run `git status` and verify
 that the following files exist and look as you expect.
 
 - protos/user/v1/user.proto was created
